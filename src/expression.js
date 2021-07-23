@@ -36,6 +36,8 @@ Node = (function () {
     // logic
     '&&': function logic_and(a, b) { return a && b; },
     '||': function logic_or(a, b) { return a || b; },
+	// Function-Call
+    'call': function callOp (a, b) { return a.apply(null, b) }
   };
 
   /* In order of precedence, see:
@@ -70,6 +72,9 @@ Node = (function () {
     // logic
   operators['&&'].precedence = 13;
   operators['||'].precedence = 14;
+
+  // Call a function
+  operators['call'].precedence = 1
 
   Node.operators = operators;
 

@@ -283,16 +283,19 @@ Parser = (function () {
   Parser.prototype.operator = function () {
     var op = '',
         op_fn,
-        ch = this.white();
+        ch = this.white(),
+        isIdentifierChar = is_valid_start_char;
 
     while (ch) {
-      if (is_identifier_char(ch) || ch <= ' ' || ch === '' ||
-          ch === '"' || ch === "'" || ch === '{' || ch === '[' ||
-          ch === '(') {
-        break;
+      if (isIdentifierChar(ch) || ch <= ' ' || ch === '' ||
+        ch === '"' || ch === "'" || ch === '{' || ch === '(' ||
+        ch === '`' || ch === ')' || (ch <= '9' && ch >= '0')) {
+        break
       }
       op += ch;
       ch = this.next();
+
+        isIdentifierChar = is_valid_continue_char;
     }
 
     if (op !== '') {
@@ -326,6 +329,7 @@ Parser = (function () {
       if (op) {
         nodes.push(undefined);  // padding.
         nodes.push(op);
+        ch = this.white();
       }
 
       if (ch === '(') {
@@ -346,7 +350,9 @@ Parser = (function () {
       if (op) {
         nodes.push(op);
       }
-      ch = this.white();
+        ch = this.white();
+
+        if (ch === ']' || (!op && ch === '(')) { break }
     }
 
     if (nodes.length === 0) {
@@ -373,10 +379,12 @@ Parser = (function () {
     while (ch) {
       if (ch === '(') {
         // a() function call
-        this.next('(');
-        this.white();
-        this.next(')');
-        return true;  // in Identifier::dereference we check this
+        //this.next('(');
+        //this.white();
+        //this.next(')');
+        //return true;  // in Identifier::dereference we check this
+
+        return this.funcArguments();
       } else if (ch === '[') {
         // a[x] membership
         this.next('[');
@@ -406,15 +414,38 @@ Parser = (function () {
     return;
   };
 
+  Parser.prototype.funcArguments = function () {
+    var args = [];
+    var ch = this.next('(')
+
+    while (ch) {
+      ch = this.white();
+      if (ch === ')') {
+        this.next(')');
+        return args;
+      } else {
+        args.push(this.expression());
+        ch = this.white();
+      }
+      if (ch !== ')') { this.next(','); }
+    }
+
+    this.error('Bad arguments to function');
+  };
+
   Parser.prototype.identifier = function () {
     var token = '', ch, deref, dereferences = [];
-    ch = this.white();
+      ch = this.white();
+
+      var isIdentifierChar = is_valid_start_char;
+
     while (ch) {
-      if (!is_identifier_char(ch)) {
+      if (!isIdentifierChar(ch)) {
         break;
       }
       token += ch;
       ch = this.next();
+      isIdentifierChar = is_valid_continue_char;
     }
     switch (token) {
       case 'true': return true;
