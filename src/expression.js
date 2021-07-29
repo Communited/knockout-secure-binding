@@ -73,6 +73,9 @@ Node = (function () {
   operators['&&'].precedence = 13;
   operators['||'].precedence = 14;
 
+  operators['&&'].earlyOut = function (a) { return !a; };
+  operators['||'].earlyOut = function (a) { return a; };
+
   // Call a function
   operators['call'].precedence = 1
 
@@ -113,10 +116,24 @@ Node = (function () {
    *
    * Exported for testing.
    */
-  Node.prototype.get_node_value = function () {
-    return this.op(this.get_leaf_value(this.lhs),
-                   this.get_leaf_value(this.rhs));
+   Node.prototype.get_node_value = function () {
+    var node = this;
+
+    var lhv = node.get_leaf_value(node.lhs);
+    var earlyOut = node.op.earlyOut;
+
+    if (earlyOut && earlyOut(lhv)) { return lhv; }
+    var rhv = node.get_leaf_value(node.rhs);
+
+    return this.op(lhv, rhv);
   };
+
+  Node.prototype.node_value_of = function (item) {
+    if (item && (item instanceof Identifier || item instanceof Expression)) {
+      return item.get_value(item);
+    }
+    return item;
+  }
 
   return Node;
 })();
