@@ -36,6 +36,10 @@ Node = (function () {
     // logic
     '&&': function logic_and(a, b) { return a && b; },
     '||': function logic_or(a, b) { return a || b; },
+    // ternary
+    '?': function ternary (a, b) {
+       return this.node_value_of(a ? b.yes : b.no);
+    },
 	// Function-Call
     'call': function callOp (a, b) { return a.apply(null, b) }
   };
@@ -76,6 +80,9 @@ Node = (function () {
   operators['&&'].earlyOut = function (a) { return !a; };
   operators['||'].earlyOut = function (a) { return a; };
 
+  // Ternary
+  operators['?'].precedence = 4;
+
   // Call a function
   operators['call'].precedence = 1
 
@@ -105,7 +112,8 @@ Node = (function () {
       return leaf.get_node_value(member_of);
     }
 
-    throw new Error("Invalid type of leaf node: " + leaf);
+    // Plain object/class.
+    return leaf;
   };
 
   /**
@@ -194,3 +202,13 @@ Expression = (function () {
   return Expression;
 })();
 
+Ternary = (function () {
+  function Ternary(yes, no) {
+    this.yes = yes;
+    this.no = no;
+  }
+
+  Ternary.prototype.get_value = function () { return this; };
+
+  return Ternary;
+})();

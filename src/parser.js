@@ -348,6 +348,10 @@ Parser = (function () {
       // infix operators
       op = this.operator();
       if (op) {
+        if (op === operators['?']) {
+          this.ternary(nodes);
+          break;
+        }
         nodes.push(op);
       }
         ch = this.white();
@@ -364,6 +368,15 @@ Parser = (function () {
     }
 
     return new Expression(nodes);
+  };
+
+  Parser.prototype.ternary = function (nodes) {
+    var ternary = new Ternary();
+    ternary.yes = this.expression();
+    this.next(':');
+    ternary.no = this.expression();
+    nodes.push(operators['?']);
+    nodes.push(ternary);
   };
 
   /**
