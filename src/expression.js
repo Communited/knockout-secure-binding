@@ -6,10 +6,13 @@ Node = (function () {
     this.rhs = rhs;
   }
 
+  var LAMBDA = function () {};
+
   var operators =  {
     // unary
     '!': function not(a, b) { return !b; },
     '!!': function notnot(a, b) { return !!b; },
+    '=>': LAMBDA,
     // mul/div
     '*': function mul(a, b) { return a * b; },
     '/': function div(a, b) { return a / b; },
@@ -47,6 +50,8 @@ Node = (function () {
   /* In order of precedence, see:
   https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence#Table
   */
+    // lambda
+  //operators['=>'].precedence = 20
     // logical not
   operators['!'].precedence = 4;
   operators['!!'].precedence = 4; // explicit double-negative
@@ -123,9 +128,18 @@ Node = (function () {
    * @return {function}   The function that calculates the expression.
    *
    * Exported for testing.
+   * 
+   * * Note that for a lambda, we do not evaluate the RHS expression until
+   * the lambda is called.
    */
    Node.prototype.get_node_value = function () {
     var node = this;
+
+    if (node.op === LAMBDA) {
+      return function () {
+        return node.get_leaf_value(node.rhs);
+      }
+    }
 
     var lhv = node.get_leaf_value(node.lhs);
     var earlyOut = node.op.earlyOut;

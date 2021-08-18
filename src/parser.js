@@ -466,7 +466,9 @@ Parser = (function () {
       case 'null': return null;
       // we use `void 0` because `undefined` can be redefined.
       case 'undefined': return void 0;
-      default:
+      case 'function':  
+        throw new Error('Knockout: Anonymous functions are no longer supported, but `=>` lambdas are.');
+      // return this.anonymous_fn();
     }
     while (ch) {
       deref = this.dereference();

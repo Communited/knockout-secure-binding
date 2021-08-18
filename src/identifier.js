@@ -44,6 +44,12 @@ Identifier = (function () {
    *
    * @param  {mixed} value  Should be an object.
    * @return {mixed}        The dereferenced value.
+   * 
+   * * [1] We want to bind any function that is a method of an object, but not
+   *     corrupt any values (e.g. computed()s).   e.g. Running x.bind(obj) where
+   *     we're given `data-bind='binding: obj.x'` and x is a computed will
+   *     break the computed's `this` and it will stop working as expected.
+   * 
    */
   Identifier.prototype.dereference = function (value) {
     var member,
@@ -63,13 +69,30 @@ Identifier = (function () {
     for (i = 0, n = refs.length; i < n; ++i) {
       member = refs[i];
       if (typeof value === 'function' && Array.isArray(member)) {
-        value = value.apply(last_value || self, member);
+        var args = [];
+        for (var ii = 0; ii < member.length; ii++) {
+          if (member[ii].get_value) {
+            args.push(member[ii].get_value());
+          } else {
+            args.push(member[ii]);
+          }
+        }
+        value = value.apply(last_value || self, args);
         last_value = value;
       } else {
         last_value = value;
-        value = value[value_of(member)];
+        if (value) {
+          value = value[value_of(member)];
+        }
       }
     }
+
+    // [1] See note above.
+    if (typeof value === 'function' && n > 0 && last_value !== value &&
+        last_value.hasOwnProperty(member)) {
+      return value.bind(last_value)
+    }
+
     return value;
   };
 
