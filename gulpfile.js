@@ -24,6 +24,7 @@ var fs = require('fs'),
 
     banner = '/*! <%= pkg.name %> - v<%= pkg.version %> - ' +
       '<%= today.toJSON().substr(0,10) %>\n' +
+      ' *  <%= pkg.description %>\n' +
       ' *  <%= pkg.homepage %>\n' +
       ' *  Copyright (c) 2013 - <%= today.getFullYear() %> ' +
       '<%= pkg.author.name %>;' +
