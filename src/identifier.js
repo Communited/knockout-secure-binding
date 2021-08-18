@@ -71,7 +71,7 @@ Identifier = (function () {
       if (typeof value === 'function' && Array.isArray(member)) {
         var args = [];
         for (var ii = 0; ii < member.length; ii++) {
-          if (member[ii].get_value) {
+          if (member[ii] && member[ii].get_value) {
             args.push(member[ii].get_value());
           } else {
             args.push(member[ii]);
